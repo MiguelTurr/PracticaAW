@@ -10,20 +10,23 @@ CREATE TABLE users (
 
 CREATE TABLE collections (
     collectionID INT(11) NOT NULL,
-    albumName VARCHAR(50) NOT NULL,
+    collectionName VARCHAR(50) NOT NULL,
+    albumName VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE albums (
     albumID INT(11) NOT NULL,
-    name VARCHAR(50) NOT NULL,
+    albumName VARCHAR(50) NOT NULL,
     nCards int(15) NOT NULL,
-    albumPrice INT(11) NOT NULL
+    albumPrice INT(11) NOT NULL,
+    CHECK(albumPrice > 0)
 );
 
 CREATE TABLE cards (
     cardID INT(11) NOT NULL,
     cardName VARCHAR(50) NOT NULL,
-    price INT(11) NOT NULL
+    cardPrice INT(11) NOT NULL,
+    CHECK(cardPrice > 0)
 );
 
 ALTER TABLE users ADD PRIMARY KEY (ID);
@@ -31,5 +34,14 @@ ALTER TABLE users MODIFY username VARCHAR(50) NOT NULL UNIQUE;
 ALTER TABLE users MODIFY ID INT(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE collections ADD PRIMARY KEY (CollectionID);
+ALTER TABLE collections MODIFY collectionName VARCHAR(50) NOT NULL UNIQUE;
+ALTER TABLE collections MODIFY collectionID INT(11) NOT NULL AUTO_INCREMENT;
+
 ALTER TABLE albums ADD PRIMARY KEY (albumID);
+ALTER TABLE albums MODIFY albumName VARCHAR(50) NOT NULL UNIQUE;
+ALTER TABLE albums MODIFY albumID INT(11) NOT NULL AUTO_INCREMENT;
+
+
 ALTER TABLE cards ADD PRIMARY KEY (cardID);
+ALTER TABLE cards MODIFY cardName VARCHAR(50) NOT NULL UNIQUE;
+ALTER TABLE cards MODIFY cardID INT(11) NOT NULL AUTO_INCREMENT;
