@@ -1,0 +1,25 @@
+{
+  "name": "practicaaw",
+  "version": "1.0.0",
+  "description": "Trabajo en grupo",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MiguelTurr/PracticaAW.git"
+  },
+  "author": "Miguel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MiguelTurr/PracticaAW/issues"
+  },
+  "homepage": "https://github.com/MiguelTurr/PracticaAW#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  }
+}
