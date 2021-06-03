@@ -1,0 +1,8 @@
+USUARIOS:
+    
+    user: pepe      |       password: abcd
+    user: pepe      |       password: abcd
+    
+ADMINISTRADORES:
+
+    user: pepe      |       password: abcd

@@ -36,7 +36,7 @@ const db = require('./database.js');
 server.get('/', function(req, res) {
     res.render('quiosco.ejs', {
         name:req.session.name,
-        rol: 1
+        rol: req.session.rol
     });
 });
 
@@ -126,7 +126,26 @@ server.get('/juegos/tiktaktoe', function(req, res) {
     }
 });
 
+server.get('/tienda', function(req, res) {
+
+    if(req.session.iniciado === undefined) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else {
+        res.render('tienda.ejs', {
+            name: req.session.name,
+            rol: req.session.rol
+        });
+    }
+});
+
 server.get('/perfil', function(req, res) {
+
     if(req.session.iniciado === undefined) {
 
         res.render('error.ejs', {
@@ -138,6 +157,27 @@ server.get('/perfil', function(req, res) {
     } else {
         res.render('perfil.ejs', {
             name:req.session.name,
+            rol: req.session.rol,
+            saldo: 55,
+            album: 10
+        });
+    }
+});
+
+server.get('/coleccion', function(req, res) {
+
+    if(req.session.iniciado === undefined) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else {
+
+        res.render('coleccion.ejs', {
+            name: req.session.name,
             rol: req.session.rol
         });
     }
@@ -145,7 +185,15 @@ server.get('/perfil', function(req, res) {
 
 server.get('/admin', function(req, res) {
 
-    if(req.session.iniciado === undefined || req.session.rol != def.ROL_ADMIN) {
+    if(req.session.iniciado === undefined) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else if(req.session.rol != def.ROL_ADMIN) {
 
         res.render('error.ejs', {
             name: req.session.name,
@@ -154,7 +202,10 @@ server.get('/admin', function(req, res) {
         });
 
     } else {
-
+        res.render('admin.ejs', {
+            name: req.session.name,
+            rol: req.session.rol
+        });
     }
 });
 
@@ -186,6 +237,8 @@ server.get('/logout', function(req, res) {
         res.redirect('/');
     });
 });
+
+//
 
 https.createServer({
 
