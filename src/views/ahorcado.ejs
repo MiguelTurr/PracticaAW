@@ -69,8 +69,7 @@
 
                 fallos++;
                 intentos--;
-                if (intentos != 0)
-                    window.alert("Te quedan " + intentos + " intentos.");
+                document.getElementById("intento").innerHTML = intentos;
             }
             
             var fin = true;
@@ -101,6 +100,10 @@
         <input name="comprobar" type="button" value="Guess" onClick="comprobarLetra()">
 
         <p id="letrasAdivinadas">Letras erróneas:</p>
+        <div>
+            Intentos:
+            <span id="intento">6</span>
+        </div>
         <input name="recargar" type="button" value="New Game" onClick="location.reload()">
     </form>
 </body>
