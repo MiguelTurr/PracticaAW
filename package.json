@@ -4,7 +4,7 @@
   "description": "Trabajo en grupo",
   "main": "index.js",
   "scripts": {
-    "dev": "node src"
+    "dev": "npx nodemon ./src/"
   },
   "repository": {
     "type": "git",
@@ -24,5 +24,8 @@
     "fs": "0.0.1-security",
     "https": "^1.0.0",
     "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
   }
 }

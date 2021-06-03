@@ -4,6 +4,7 @@ const path = require('path');
 const bcryptjs = require('bcryptjs');
 const fs = require('fs');
 const https = require('https');
+const def = require('./utils/utils.js');
 
 const port = 5000;
 
@@ -23,8 +24,7 @@ const session = require('express-session');
 server.use(session({
 	secret: 'secret',
 	resave: true,
-	saveUninitialized: true,
-    iniciado: false
+	saveUninitialized: true
 }));
 
 // BASE DE DATOS
@@ -34,7 +34,10 @@ const db = require('./database.js');
 // RUTAS
 
 server.get('/', function(req, res) {
-    res.render('inicio.ejs', {message:""});
+    res.render('quiosco.ejs', {
+        name:req.session.name,
+        rol: 1
+    });
 });
 
 server.post('/registro', async function(req, res) {
@@ -52,7 +55,8 @@ server.post('/registro', async function(req, res) {
         } else {
             req.session.iniciado = true;
             req.session.name = user;
-            res.redirect('quiosco');
+            req.session.rol = def.ROL_USER;
+            res.redirect('/');
         }
     });
 });
@@ -73,40 +77,115 @@ server.post('/login', async function(req, res) {
         } else {
             req.session.iniciado = true;
             req.session.name = result[0].username;
-            res.redirect('quiosco');
+            req.session.rol = result[0].rol;
+            res.redirect('/');
         }
     });
 });
 
-server.get('/quiosco', function(req, res) {
-
-    if(req.session.iniciado == false) {
-        console.log("¡No ha iniciado sesión!");
-
-    } else {
-        res.render('quiosco.ejs', {name:req.session.name});
-    }
+server.get('/inicio', function(req, res) {
+    res.render('inicio.ejs', {message:""});
 });
 
 server.get('/juegos', function(req, res) {
-    res.send("Selecciona un juego");
+    res.render('juegos.ejs', {
+        name:req.session.name,
+        rol: req.session.rol
+    });
+});
+
+server.get('/juegos/ahorcado', function(req, res) {
+
+    /*if(req.session.iniciado === undefined) {
+        //res.redirect('/');
+        res.send("Debes iniciar sesión primero");
+
+    } else {
+        res.render('ahorcado.ejs', {name:req.session.name});
+    }*/
+    res.render('ahorcado.ejs', {
+        name:req.session.name,
+        rol: req.session.rol
+    });
+});
+
+server.get('/juegos/tiktaktoe', function(req, res) {
+
+    if(req.session.iniciado === undefined) {
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else {
+        res.render('tiktaktoe.ejs', {
+            name:req.session.name,
+            rol: req.session.rol
+        });
+    }
 });
 
 server.get('/perfil', function(req, res) {
-    res.render('perfil.ejs', {name:req.session.name});
+    if(req.session.iniciado === undefined) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else {
+        res.render('perfil.ejs', {
+            name:req.session.name,
+            rol: req.session.rol
+        });
+    }
 });
 
+server.get('/admin', function(req, res) {
+
+    if(req.session.iniciado === undefined || req.session.rol != def.ROL_ADMIN) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡No puedes acceder aquí!",
+            rol: req.session.rol
+        });
+
+    } else {
+
+    }
+});
+
+server.post('/addpoints', function(req, res) {
+
+    const user = req.session.name
+    const puntos = req.body.points;
+
+    if(req.session.iniciado != undefined) {
+
+        db.query("UPDATE users SET points=?+points WHERE username=?", [puntos, user], function(err) {
+            
+            if(err) {
+                console.log(err);
+                res.redirect('/');
+    
+            } else {
+                res.status(200);
+            }
+        });
+    }
+});
+
+//
+
 server.get('/logout', function(req, res) {
+
     req.session.destroy(function() {
         res.redirect('/');
     });
 });
-
-/*
-server.listen(port, function() {
-    console.log("Servidor escuchando en el puerto: "+port);
-});
-*/
 
 https.createServer({
 
