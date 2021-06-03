@@ -18,94 +18,90 @@
     <h1>Pagina para el ahorcado</h1>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        var letras = [
+            ["R", "A", "D", "I", "O"],
+            ["T", "E", "A", "M", "S", "P", "E", "A", "K"],
+            ["W", "E", "B", "D", "E", "S", "I", "G", "N"],
+            ["E", "D", "U", "C", "A", "T", "I", "O", "N"],
+            ["C", "H", "O", "C", "O", "L", "A", "T", "E"],
+            ["G", "E", "R", "M", "A", "N", "Y"]
+        ]
+        var random = Math.floor((Math.random() * (letras.length - 1)));
 
-            const listaPalabras = ['caballo', 'oveja', 'cerdo', 'chimpance'];
-            let palabraAdivinar = [];
-            let palabraMostrar = [];
-            let historialLetrasUsuario = [];
-            let numIntentos = 5;
-            let nodoLetra = document.querySelector('#letra');
-            let nodoBoton = document.querySelector('#boton');
-            let nodoResultado = document.querySelector('#resultado');
-            let nodoIntentos = document.querySelector('#intentos');
-            let nodoHistorial = document.querySelector('#historial');
+        var palabra = letras[random]; // the word to guess will be chosen from the array above
+        var adivinar = new Array(palabra.length);
+        var fallos = 0;
+        var intentos = 6;
 
-            function prepararJuego() {
+        for (var i = 0; i < adivinar.length; i++) {
+            adivinar[i] = "_ ";
+        }
 
-                let posAleatoriaListaPalabras = _.random(listaPalabras.length - 1);
-                let palabraAleatoria = listaPalabras[posAleatoriaListaPalabras];
+        function mostrarAdivinar() {
+            for (var i = 0; i < adivinar.length; i++) {
+                var tablero = document.getElementById("tablero");
+                var letra = document.createTextNode(adivinar[i]);
+                tablero.appendChild(letra);
+            }
+        }
 
-                palabraAdivinar = palabraAleatoria.split('');
-
-                for (let letra of palabraAdivinar) {
-                    palabraMostrar.push('_');
+        var comprobarLetra = function() {
+            var f = document.form;
+            var b = f.elements["entrada"];
+            var caracter = b.value; // the letter provided by the user
+            caracter = caracter.toUpperCase();
+            for (var i = 0; i < palabra.length; i++) {
+                if (palabra[i] === caracter) {
+                    adivinar[i] = caracter + " ";
+                    var encontrado = true;
                 }
-                dibujarJuego();
+                b.value = "";
             }
 
-            function dibujarJuego() {
+            var tablero = document.getElementById("tablero");
+            tablero.innerHTML = "";
+            mostrarAdivinar();
 
-                nodoResultado.textContent = palabraMostrar.join(' ');
-                nodoIntentos.textContent = numIntentos;
-                nodoHistorial.textContent = historialLetrasUsuario.join(' ');
+            if (!encontrado) {
+                var letrasAdivinadas = document.getElementById("letrasAdivinadas");
+                var letra = document.createTextNode(" " + caracter);
+                letrasAdivinadas.appendChild(letra);
+
+                fallos++;
+                intentos--;
+                if (intentos != 0)
+                    window.alert("Te quedan " + intentos + " intentos.");
             }
-
-            function comprobarLetraUsuario() {
-
-                let letraUsuario = nodoLetra.value;
-
-                nodoLetra.value = '';
-                nodoLetra.focus();
-
-                for (const [posicion, letraAdivinar] of palabraAdivinar.entries()) {
-
-                    if (letraUsuario == letraAdivinar) {
-
-                        palabraMostrar[posicion] = letraAdivinar;
-                    }
-                }
-                if (!palabraAdivinar.includes(letraUsuario)) {
-
-                    numIntentos -= 1;
-                    historialLetrasUsuario.push(letraUsuario);
-                }
-                acabarJuego();
-                dibujarJuego();
-            }
-
-            function comprobarPulsadoEnter(evento) {
-                if (evento.code == 'Enter') {
-                    comprobarLetraUsuario();
+            
+            var fin = true;
+            for (var i = 0; i < adivinar.length; i++) {
+                if (adivinar[i] === "_ ") {
+                    fin = false;
                 }
             }
-
-            function acabarJuego() {
-
-                if (!palabraMostrar.includes('_')) {
-
-                    alert('Has ganado!!!');
-                    location.reload(true);
-                }
-                if (numIntentos == 0) {
-
-                    alert('Has Perdido!!! Era: ' + palabraAdivinar.join(''));
-                    location.reload(true);
-                }
+            if (fin) {
+                window.alert("Enhorabuena, has ganado!");
             }
 
-            nodoBoton.addEventListener('click', comprobarLetraUsuario);
+            if (fallos === 6) {
+                window.alert("Has perdido todas tus vidas, fin del juego :(");
+            }
+        }
 
-            nodoLetra.addEventListener('keyup', comprobarPulsadoEnter);
-            prepararJuego();
-        });
+        function init() {
+            mostrarAdivinar();
+        }
+
+        window.onload = init;
     </script>
-    <input id="letra" type="text" placeholder="Dame una letra" maxlength="1">
-    <button id="boton">Comprobar</button>
-    <div id="resultado"></div>
-    <h2>Intentos</h2>
-    <div id="intentos"></div>
-    <h2>Historial</h2>
-    <div id="historial"></div>
+    <b>Dispone de 6 intentos</b>
+    <p id="tablero"></p>
+    <form name="form">
+        <input name="entrada" type="text" size="5" maxlength="1">
+        <input name="comprobar" type="button" value="Guess" onClick="comprobarLetra()">
+
+        <p id="letrasAdivinadas">Letras erróneas:</p>
+        <input name="recargar" type="button" value="New Game" onClick="location.reload()">
+    </form>
 </body>
 </html>
