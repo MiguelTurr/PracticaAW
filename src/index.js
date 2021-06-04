@@ -78,13 +78,21 @@ server.post('/login', async function(req, res) {
             req.session.iniciado = true;
             req.session.name = result[0].username;
             req.session.rol = result[0].rol;
+            req.session.puntos = result[0].points;
+            req.session.userID = result[0].ID;
             res.redirect('/');
         }
     });
 });
 
 server.get('/inicio', function(req, res) {
-    res.render('inicio.ejs', {message:""});
+
+    if(req.session.iniciado === undefined) {
+        res.render('inicio.ejs', {message:""});
+
+    } else {
+        res.redirect('/');
+    }
 });
 
 server.get('/juegos', function(req, res) {
@@ -96,17 +104,19 @@ server.get('/juegos', function(req, res) {
 
 server.get('/juegos/ahorcado', function(req, res) {
 
-    /*if(req.session.iniciado === undefined) {
-        //res.redirect('/');
-        res.send("Debes iniciar sesión primero");
+    if(req.session.iniciado === undefined) {
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
 
     } else {
-        res.render('ahorcado.ejs', {name:req.session.name});
-    }*/
-    res.render('ahorcado.ejs', {
-        name:req.session.name,
-        rol: req.session.rol
-    });
+        res.render('ahorcado.ejs', {
+            name:req.session.name,
+            rol: req.session.rol
+        });
+    }
 });
 
 server.get('/juegos/tiktaktoe', function(req, res) {
@@ -155,11 +165,28 @@ server.get('/perfil', function(req, res) {
         });
 
     } else {
-        res.render('perfil.ejs', {
-            name:req.session.name,
-            rol: req.session.rol,
-            saldo: 55,
-            album: 10
+
+        db.query("SELECT COUNT(*) AS contador FROM album WHERE userID=?", [req.session.userID],
+        
+        function(err, result) {
+            if(err) {
+                console.log(err);
+
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
+                });
+    
+            } else {
+
+                res.render('perfil.ejs', {
+                    name:req.session.name,
+                    rol: req.session.rol,
+                    saldo: req.session.puntos,
+                    album: result[0].contador
+                });
+            }
         });
     }
 });
@@ -176,9 +203,28 @@ server.get('/coleccion', function(req, res) {
 
     } else {
 
-        res.render('coleccion.ejs', {
-            name: req.session.name,
-            rol: req.session.rol
+        db.query("SELECT collections.collectionName FROM album INNER JOIN collections ON collections.collectionID = album.collectionID WHERE album.userID=?", [req.session.userID],
+        
+        function(err, result) {
+            if(err) {
+                console.log(err);
+
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
+                });
+    
+            } else {
+
+                console.log(result);
+                res.render('coleccion.ejs', {
+                    name: req.session.name,
+                    rol: req.session.rol,
+                    colecciones: result.length,
+                    result: result
+                });
+            }
         });
     }
 });
@@ -202,11 +248,133 @@ server.get('/admin', function(req, res) {
         });
 
     } else {
-        res.render('admin.ejs', {
+        db.query("SELECT collections.*,MAX(cromosTienda.cromoCantidad) as estado FROM collections INNER JOIN cromosTienda ON collections.collectionID = cromosTienda.collectionID group by collections.collectionName ORDER BY collections.collectionID DESC",
+        
+        function(err, result) {
+            if(err) {
+                console.log(err);
+
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
+                });
+    
+            } else {
+                res.render('admin.ejs', {
+                    name: req.session.name,
+                    rol: req.session.rol,
+                    colecciones: result.length,
+                    result: result
+                });
+            }
+        });
+    }
+});
+
+server.get('/admin/coleccion', function(req, res) {
+
+    if(req.session.iniciado === undefined) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else if(req.session.rol != def.ROL_ADMIN) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡No puedes acceder aquí!",
+            rol: req.session.rol
+        });
+
+    } else {
+        res.render('addColeccion.ejs', {
             name: req.session.name,
             rol: req.session.rol
         });
     }
+});
+
+server.get('/admin/coleccion/ver/:id', function(req, res) {
+
+    if(req.session.iniciado === undefined) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else if(req.session.rol != def.ROL_ADMIN) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡No puedes acceder aquí!",
+            rol: req.session.rol
+        });
+
+    } else {
+        db.query("SELECT * FROM cromosTienda where collectionID=?", [req.params.id], function(err, result) {
+            
+            if(err) {
+                console.log(err);
+
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
+                });
+    
+            } else {
+
+                console.log(result);
+
+                res.render('adminVerColeccion', {
+                    name: req.session.name,
+                    rol: req.session.rol,
+                    nombreColeccion: "prueba",
+                    numeroCromos: result.length,
+                    cromos: result
+                });
+            }
+        });
+    }
+});
+
+server.post('/admin/coleccion/add', function(req, res) {
+
+    db.query("INSERT INTO collections SET ?", {collectionName:req.body.coleName}, function(err, result) {
+
+        if(err) {
+            console.log(err);
+
+            res.render('error.ejs', {
+                name: req.session.name,
+                message: "¡Ha ocurrido un error!",
+                rol: req.session.rol
+            });
+
+        } else {
+
+            var collectionID = result.insertId;
+
+            for(let i = 0; i < req.body.cromos.length; i++) {
+                db.query("INSERT INTO cromosTienda SET ?", {
+                    collectionID:collectionID,
+                    cromoNombre: req.body.cromos[i].name,
+                    cromoImagen: req.body.cromos[i].imagen,
+                    cromoPrecio: req.body.cromos[i].precio,
+                    cromoCantidad: req.body.cromos[i].cantidad
+                });
+            } 
+
+            res.status(200);
+            res.send("");
+        }
+    });
 });
 
 server.post('/addpoints', function(req, res) {
@@ -216,6 +384,8 @@ server.post('/addpoints', function(req, res) {
 
     if(req.session.iniciado != undefined) {
 
+        req.session.puntos += puntos;
+
         db.query("UPDATE users SET points=?+points WHERE username=?", [puntos, user], function(err) {
             
             if(err) {
@@ -224,6 +394,7 @@ server.post('/addpoints', function(req, res) {
     
             } else {
                 res.status(200);
+                res.send("");
             }
         });
     }

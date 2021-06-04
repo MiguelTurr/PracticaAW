@@ -11,10 +11,53 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="css/main.css">
+
+    <!-- FONT AWESOME -->
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">
 </head>
 <body>
     <%- include ("partials/navegacion") %>
 
-    <h1>Pagina para las colecciones</h1>
+    <div class="container p-4">
+        <div class="row">
+            <div class="col-md-6 offset-md-5 mx-auto">
+
+                <div class="card text-center">
+                    <div class="card-header">
+
+                        <% if(colecciones == 0) { %>
+                            <h1>No hay ninguna colección comprada</h1>
+
+                        <% } else { %>
+
+                            <table class="table table-dark">
+                                <thead>
+                                    <tr>
+                                        <td>Nombre colección</td>
+                                        <td>Estado</td>
+                                        <td>Ver</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% for(var i=0; i < colecciones; i++) {%>
+                                    <tr>
+                                        <td><%= result[i].collectionName %></td>
+                                        <td>PRUEBA</td>
+                                        <td>
+                                            <button class="btn-info" type="reset">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

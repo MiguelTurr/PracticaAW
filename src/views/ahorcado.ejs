@@ -14,8 +14,32 @@
 </head>
 <body>
     <%- include ("partials/navegacion") %>
+    
+    <div class="container p-5">
+        <div class="row">
+            <div class="col-md-3 mx-auto">
+                <div class="card text-center">
+                    <div class="card-header bg-dark text-white text-center">
+                        <p id="tablero"></p>
+                    </div>
+                    <div class="card-body ">
 
-    <h1>Pagina para el ahorcado</h1>
+                        <form name="form">
+                            <input name="entrada" type="text" size="5" maxlength="1">
+                            <input name="comprobar" type="button" value="Guess" onClick="comprobarLetra()">
+
+                            <p id="letrasAdivinadas">Letras erróneas:</p>
+                            <div>
+                                Intentos:
+                                <span id="intento">6</span>
+                            </div>
+                            <input class=" btn btn-success btn-block" name="recargar" type="button" value="New Game" onClick="location.reload()">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         var letras = [
@@ -34,7 +58,12 @@
         var intentos = 6;
 
         for (var i = 0; i < adivinar.length; i++) {
-            adivinar[i] = "_ ";
+            if(i == 0) {
+                adivinar[i] = palabra[0];
+
+            } else {
+                adivinar[i] = "_ ";
+            }
         }
 
         function mostrarAdivinar() {
@@ -93,18 +122,5 @@
 
         window.onload = init;
     </script>
-    <b>Dispone de 6 intentos</b>
-    <p id="tablero"></p>
-    <form name="form">
-        <input name="entrada" type="text" size="5" maxlength="1">
-        <input name="comprobar" type="button" value="Guess" onClick="comprobarLetra()">
-
-        <p id="letrasAdivinadas">Letras erróneas:</p>
-        <div>
-            Intentos:
-            <span id="intento">6</span>
-        </div>
-        <input name="recargar" type="button" value="New Game" onClick="location.reload()">
-    </form>
 </body>
 </html>

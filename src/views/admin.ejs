@@ -11,9 +11,75 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="../css/main.css">
+
+    <!-- FONT AWESOME -->
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">
 </head>
 <body>
     <%- include ("partials/navegacion") %>
-    <h1>Página para la administración</h1>
+
+    <div class="container p-4">
+        <div class="row">
+            <div class="col-md-6 offset-md-5 mx-auto">
+
+                <div class="card text-center">
+                    <div class="card-header">
+
+                        <% if(colecciones == 0) { %>
+                            <h1>No hay ninguna colección creada</h1>
+
+                        <% } else { %>
+
+                            <table class="table table-dark">
+                                <thead>
+                                    <tr>
+                                        <td>Nombre colección</td>
+                                        <td>Estado</td>
+                                        <td>Editar</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% for(var i=0; i < colecciones; i++) {%>
+                                    <tr>
+                                        <td><%= result[i].collectionName %></td>
+                                        <td>
+                                            <% if(result[i].estado != 0) { %>
+                                                <span class="text-success">Activa</span>
+
+                                            <% } else { %>
+                                                <span class="text-danger">Agotada</span>
+                                            <% }%>
+                                        
+                                        </td>
+                                        <td>
+                                            <button class="btn-danger" type="reset" onclick="verColeccion('<%=result[i].collectionID%>');">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <% } %>
+                                </tbody>
+                            </table>
+                        <% } %>
+                    </div>
+
+                    <div class="card-body">  
+                        <div class="form-group">
+                          <button class="btn btn-success btn-block" onclick="location.href='/admin/coleccion'">
+                            Crear colección
+                          </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function verColeccion(id) {
+            window.location.href = '/admin/coleccion/ver/'+id;
+        }
+    </script>
 </body>
 </html>

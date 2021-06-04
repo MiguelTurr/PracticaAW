@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiosco AW</title>
+
+    <!-- BOOSTRAP -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/main.css">
+    
+    <!-- FONT AWESOME -->
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">
+</head>
+<body>
+    <%- include ("partials/navegacion") %>
+
+    <div class="container p-5">
+        <div class="row">
+          <div class="col-sm-6 offset-md-5 mx-auto">
+            <div class="card">
+              <div class="card-header bg-dark text-white text-center">
+                <h3>Colección</h3>
+              </div>
+              <div class="card-body">
+                  <div class="form-group">
+                    <input class="form-control" id="nombreColeccion" type="text" placeholder="Nombre">
+                  </div> 
+              </div>
+                <div class="form-group bg-dark text-white text-center">
+                  <h3>Cromos</h3>
+                  </div>
+              <div class="card-body">
+                  <div class="form-group text-center">
+                  <table class="table table-dark" style="display:none;" id="tablaCromos">
+                    <thead>
+                      <tr>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Precio</th>
+                        <th scope="col">Cantidad</th>
+                        <th scope="col">Borrar</th>
+                      </tr>
+                    </thead>
+                    <tbody id="listaCromos">
+                      
+                    </tbody>
+                  </table>
+                  </div>
+                  <div class="form-group">
+                    <button class="btn btn-success btn-block" onclick="crearColeccion();">
+                      Crear
+                    </button>
+                  </div>   
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-4 offset-md-4 mx-auto">
+            <div class="card">
+              <div class="card-header bg-dark text-white text-center">
+                <h3>Cromo</h3>
+              </div>
+              <div class="card-body">
+                  <div class="form-group">
+                    <input class="form-control" id="nombreCromo" type="text" placeholder="Nombre">
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control" id="precioCromo" type="number" placeholder="Precio">
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control" id="cantidadCromo" type="number" placeholder="Cantidad">
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control" id="imagenCromo" type="text" placeholder="Imagen">
+                  </div>
+                  <div class="form-group">
+                    <button class="btn btn-success btn-block" onclick="addCromo();">
+                      Añadir
+                    </button>
+                  </div>  
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+      
+    <script>
+        var cromos = [];
+        var contador = 0;
+      
+        function addCromo() {
+            var nombre = document.getElementById('nombreCromo').value;
+            if(nombre == "") {
+                return alert("Debes escribir un nombre al cromo");
+            }
+
+            var len = cromos.length;
+
+            for(var i = 0; i < len; i++) {
+                if(nombre == cromos[i].name) {
+                    return alert("Ya hay un cromo con ese nombre añadido");
+                }
+            }
+              
+            var precio = parseInt(document.getElementById('precioCromo').value);
+            if(precio <= 0) {
+                return  alert("Ese precio no es válido");
+            }
+              
+            var cantidad = parseInt(document.getElementById('cantidadCromo').value);
+            if(cantidad <= 0) {
+                return  alert("Esa cantidad no es válida");
+            }
+              
+            var imagen = document.getElementById('imagenCromo').value;
+            if(imagen == "") {
+                return  alert("Debes añadir una imagen al cromo");
+            }
+              
+            if(len == 0) {
+                document.getElementById("tablaCromos").style.display = "block";
+            }
+              
+            document.getElementById('nombreCromo').value = "";
+            document.getElementById('precioCromo').value = "";
+            document.getElementById('cantidadCromo').value  = "";
+            document.getElementById('imagenCromo').value  = "";
+                      
+            document.getElementById("listaCromos").innerHTML += 
+                `<tr id='Cromo${contador}'>
+                    <td>${nombre}</td>
+                    <td>${precio}</td>
+                    <td>${cantidad}</td>
+                    <td>
+                        <button class="btn-danger" type="reset" onclick="borrarCromo(${contador});">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+              
+            contador++;
+            var cromo = {"name":nombre, "precio":precio, "cantidad":cantidad, "imagen":imagen};	
+            cromos.push(cromo);			
+        }
+          
+        async function crearColeccion() {
+            var nombre = document.getElementById('nombreColeccion').value;
+            if(nombre == "") {
+                return alert("Debes escribir un nombre para la colección");
+            }
+              
+            if(cromos.length == 0) {
+                return alert("Debes añadir algún cromo a la colección");
+            }
+
+            var object = {
+                coleName: nombre,
+                cromos: cromos
+            };
+
+            await fetch('https://localhost:5000/admin/coleccion/add', {
+                method: 'POST',
+                body: JSON.stringify(object),
+                headers: { 'Content-Type': 'application/json' },
+
+            }).then(function(response) {
+
+                if(response.ok) {
+                    console.log(response.text());
+
+                } else {
+                    throw "Error en la llamada Ajax";
+                }
+            }).then(function(texto) {
+                window.location.href = '/admin';
+
+            }).catch(function(err) {
+                console.log(err);
+            });
+        }
+          
+        function borrarCromo(id) {
+            document.getElementById(`Cromo${id}`).innerHTML = "";
+            cromos.splice(id, 1);
+        }
+          
+    </script>
+</body>
+</html>

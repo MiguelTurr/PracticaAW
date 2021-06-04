@@ -15,33 +15,31 @@ ALTER TABLE users MODIFY ID INT(11) NOT NULL AUTO_INCREMENT;
 
 CREATE TABLE collections (
     collectionID INT(11) NOT NULL,
-    collectionName VARCHAR(50) NOT NULL,
-    albumName VARCHAR(50) NOT NULL
+    collectionName VARCHAR(50) NOT NULL
 );
 
 ALTER TABLE collections ADD PRIMARY KEY (CollectionID);
 ALTER TABLE collections MODIFY collectionName VARCHAR(50) NOT NULL UNIQUE;
 ALTER TABLE collections MODIFY collectionID INT(11) NOT NULL AUTO_INCREMENT;
 
-CREATE TABLE albums (
-    albumID INT(11) NOT NULL,
-    albumName VARCHAR(50) NOT NULL,
-    nCards int(15) NOT NULL,
-    albumPrice INT(11) NOT NULL,
-    CHECK(albumPrice > 0)
+CREATE TABLE cromosTienda (
+    ID INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    collectionID INT(11) NOT NULL,
+    cromoNombre VARCHAR(50) NOT NULL,
+    cromoImagen VARCHAR(500) NOT NULL,
+    cromoPrecio INT(11) NOT NULL,
+    cromoCantidad INT(11) NOT NULL
 );
 
-ALTER TABLE albums ADD PRIMARY KEY (albumID);
-ALTER TABLE albums MODIFY albumName VARCHAR(50) NOT NULL UNIQUE;
-ALTER TABLE albums MODIFY albumID INT(11) NOT NULL AUTO_INCREMENT;
-
-CREATE TABLE cards (
-    cardID INT(11) NOT NULL,
-    cardName VARCHAR(50) NOT NULL,
-    cardPrice INT(11) NOT NULL,
-    CHECK(cardPrice > 0)
+CREATE TABLE album (
+    ID INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    collectionID INT(11) NOT NULL,
+    userID INT(11) NOT NULL
 );
 
-ALTER TABLE cards ADD PRIMARY KEY (cardID);
-ALTER TABLE cards MODIFY cardName VARCHAR(50) NOT NULL UNIQUE;
-ALTER TABLE cards MODIFY cardID INT(11) NOT NULL AUTO_INCREMENT;
+CREATE TABLE cromosUsuario (
+    ID INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    collectionID INT(11) NOT NULL,
+    cromoID INT(11) NOT NULL,
+    userID INT(11) NOT NULL
+);
