@@ -16,6 +16,7 @@ ALTER TABLE users MODIFY ID INT(11) NOT NULL AUTO_INCREMENT;
 CREATE TABLE collections (
     collectionID INT(11) NOT NULL,
     collectionName VARCHAR(50) NOT NULL
+    /*collectionCost INT(11) NOT NULL*/
 );
 
 ALTER TABLE collections ADD PRIMARY KEY (CollectionID);
@@ -34,12 +35,16 @@ CREATE TABLE cromosTienda (
 CREATE TABLE album (
     ID INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     collectionID INT(11) NOT NULL,
-    userID INT(11) NOT NULL
+    userID INT(11) NOT NULL,
+    totalCromos INT(11) NOT NULL,
+    cromoComprados INT(11) NOT NULL default 0,
+    UNIQUE `userID_collectionID` (`userID`,`collectionID`)
 );
 
 CREATE TABLE cromosUsuario (
     ID INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     collectionID INT(11) NOT NULL,
     cromoID INT(11) NOT NULL,
-    userID INT(11) NOT NULL
+    userID INT(11) NOT NULL,
+    UNIQUE `userID_collectionID_cromoID` (`collectionID`,`cromoID`,`userID`)
 );

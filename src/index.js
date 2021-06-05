@@ -207,7 +207,7 @@ server.get('/coleccion', function(req, res) {
 
     } else {
 
-        db.query("SELECT collections.collectionName FROM album INNER JOIN collections ON collections.collectionID = album.collectionID WHERE album.userID=?", [req.session.userID],
+        db.query("SELECT collections.collectionName,album.* FROM album INNER JOIN collections ON collections.collectionID = album.collectionID WHERE album.userID=?", [req.session.userID],
         
         function(err, result) {
             if(err) {
@@ -227,6 +227,85 @@ server.get('/coleccion', function(req, res) {
                     colecciones: result.length,
                     result: result
                 });
+            }
+        });
+    }
+});
+
+server.get('/coleccion/ver/:id', function(req, res) {
+
+    if(req.session.iniciado === undefined) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else if(req.session.rol != def.ROL_ADMIN) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡No puedes acceder aquí!",
+            rol: req.session.rol
+        });
+
+    } else {
+        db.query("SELECT album.*,collections.collectionName,cromosTienda.cromoImagen,cromosTienda.cromoNombre FROM album INNER JOIN cromosUsuario ON cromosUsuario.collectionID=album.collectionID INNER JOIN cromosTienda ON cromosUsuario.cromoID=cromosTienda.ID INNER JOIN collections ON album.collectionID=collections.collectionID WHERE cromosUsuario.userID=? AND album.collectionID=?", [req.session.userID, req.params.id],
+
+        function(err, result) {
+            
+            if(err) {
+                console.log(err);
+
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
+                });
+
+            } else {
+
+                if(result.length == 0) {
+
+                    db.query("SELECT collections.collectionName,album.* FROM album INNER JOIN collections ON collections.collectionID = album.collectionID WHERE album.userID=? AND album.collectionID=?", [req.session.userID, req.params.id],
+
+                    function(err, result) {
+                        
+                        if(err) {
+                            console.log(err);
+
+                            res.render('error.ejs', {
+                                name: req.session.name,
+                                message: "¡Ha ocurrido un error!",
+                                rol: req.session.rol
+                            });
+
+                        } else {
+
+                            res.render('coleccionVer', {
+                                name: req.session.name,
+                                rol: req.session.rol,
+                                nombreColeccion: result[0].collectionName,
+                                cromosComprados: result[0].cromoComprados,
+                                cromosTotal: result[0].totalCromos,
+                                numeroCromos: 0
+                            });
+                        }
+                    });
+
+                } else {
+
+                    res.render('coleccionVer', {
+                        name: req.session.name,
+                        rol: req.session.rol,
+                        nombreColeccion: result[0].collectionName,
+                        cromosComprados: result[0].cromoComprados,
+                        cromosTotal: result[0].totalCromos,
+                        numeroCromos: result.length,
+                        cromos: result
+                    });
+                }
             }
         });
     }

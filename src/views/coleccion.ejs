@@ -21,7 +21,7 @@
 
     <div class="container p-4">
         <div class="row">
-            <div class="col-md-6 offset-md-5 mx-auto">
+            <div class="col-md-6 mx-auto">
 
                 <div class="card text-center">
                     <div class="card-header">
@@ -43,9 +43,20 @@
                                     <% for(var i=0; i < colecciones; i++) {%>
                                     <tr>
                                         <td><%= result[i].collectionName %></td>
-                                        <td>PRUEBA</td>
                                         <td>
-                                            <button class="btn-info" type="reset">
+                                            <% if(result[i].cromoComprados == 0) { %>
+                                                <span class="text-danger">No iniciada</span>
+
+                                            <% } else if(result[i].cromoComprados == result[i].totalCromos){ %>
+                                                <span class="text-success">Finalizada</span>
+
+                                            <% } else { %>
+                                                <span class="text-warning">En proceso</span>
+
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <button class="btn-info" type="reset" onclick="verColeccion('<%=result[i].collectionID%>');">
                                                 <i class="fas fa-search"></i>
                                             </button>
                                         </td>
@@ -55,9 +66,20 @@
                             </table>
                         <% } %>
                     </div>
+
+                    <div class="card-body">
+                        <button type="button" class="btn btn-success btn-block" onclick="location.href='/tienda'">Ir a la tienda</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+
+        function verColeccion(id) {
+            window.location.href = '/coleccion/ver/'+id;
+        }
+    </script>
 </body>
 </html>
