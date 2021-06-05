@@ -106,12 +106,12 @@
             }
               
             var precio = parseInt(document.getElementById('precioCromo').value);
-            if(precio <= 0) {
+            if(isNaN(precio) == true || precio <= 0) {
                 return  alert("Ese precio no es válido");
             }
               
             var cantidad = parseInt(document.getElementById('cantidadCromo').value);
-            if(cantidad <= 0) {
+            if(isNaN(cantidad) == true || cantidad <= 0) {
                 return  alert("Esa cantidad no es válida");
             }
               

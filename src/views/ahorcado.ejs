@@ -26,14 +26,14 @@
 
                         <form name="form">
                             <input name="entrada" type="text" size="5" maxlength="1">
-                            <input name="comprobar" type="button" value="Guess" onClick="comprobarLetra()">
+                            <input name="comprobar" type="button" value="Adivinar" onClick="comprobarLetra()">
 
                             <p id="letrasAdivinadas">Letras erróneas:</p>
                             <div>
                                 Intentos:
                                 <span id="intento">6</span>
                             </div>
-                            <input class=" btn btn-success btn-block" name="recargar" type="button" value="New Game" onClick="location.reload()">
+                            <input class=" btn btn-success btn-block" name="recargar" type="button" value="Juego nuevo" onClick="location.reload()">
                         </form>
                     </div>
                 </div>
@@ -43,12 +43,12 @@
 
     <script>
         var letras = [
-            ["R", "A", "D", "I", "O"],
-            ["T", "E", "A", "M", "S", "P", "E", "A", "K"],
-            ["W", "E", "B", "D", "E", "S", "I", "G", "N"],
-            ["E", "D", "U", "C", "A", "T", "I", "O", "N"],
-            ["C", "H", "O", "C", "O", "L", "A", "T", "E"],
-            ["G", "E", "R", "M", "A", "N", "Y"]
+            ["T", "O", "S", "E", "R"],
+            ["T", "E", "R", "M", "I", "N", "A", "D", "O"],
+            ["P", "A", "T", "A", "T", "A"],
+            ["E", "D", "U", "C", "A", "C", "I", "O", "N"],
+            ["F", "U", "N", "C", "I", "O", "N", "A"],
+            ["E", "S", "C", "U", "E", "L", "A"]
         ]
         var random = Math.floor((Math.random() * (letras.length - 1)));
 
@@ -56,10 +56,11 @@
         var adivinar = new Array(palabra.length);
         var fallos = 0;
         var intentos = 6;
+        var juegoTerminado = false;
 
         for (var i = 0; i < adivinar.length; i++) {
             if(i == 0) {
-                adivinar[i] = palabra[0];
+                adivinar[i] = palabra[0]+" ";
 
             } else {
                 adivinar[i] = "_ ";
@@ -67,17 +68,29 @@
         }
 
         function mostrarAdivinar() {
+
             for (var i = 0; i < adivinar.length; i++) {
                 var tablero = document.getElementById("tablero");
                 var letra = document.createTextNode(adivinar[i]);
                 tablero.appendChild(letra);
             }
+
         }
 
         var comprobarLetra = function() {
+
+            if(juegoTerminado == true) {
+                return alert("Dale al botón de empezar nuevo juego");
+            }
+
             var f = document.form;
             var b = f.elements["entrada"];
-            var caracter = b.value; // the letter provided by the user
+            var caracter = b.value;
+
+            if(caracter == "") {
+                return alert("Debes escribir una letra");
+            }
+
             caracter = caracter.toUpperCase();
             for (var i = 0; i < palabra.length; i++) {
                 if (palabra[i] === caracter) {
@@ -109,10 +122,12 @@
             }
             if (fin) {
                 window.alert("Enhorabuena, has ganado!");
+                juegoTerminado = true;
             }
 
             if (fallos === 6) {
                 window.alert("Has perdido todas tus vidas, fin del juego :(");
+                juegoTerminado = true;
             }
         }
 

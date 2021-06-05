@@ -24,7 +24,11 @@ const session = require('express-session');
 server.use(session({
 	secret: 'secret',
 	resave: true,
-	saveUninitialized: true
+	saveUninitialized: true,
+    rolling: true, // QUE EL TIEMPO DE CERRAR LA SESIÓN SE ACTUALICE CON LA ACTIVIDAD DEL USUARIO
+    cookie: {
+      maxAge: 30 * 60 * 1000 // CERRAR LA SESIÓN DESPUÉS DE 30 MINUTOS DE INACTIVIDAD
+    }
 }));
 
 // BASE DE DATOS
@@ -217,7 +221,6 @@ server.get('/coleccion', function(req, res) {
     
             } else {
 
-                console.log(result);
                 res.render('coleccion.ejs', {
                     name: req.session.name,
                     rol: req.session.rol,
@@ -248,7 +251,7 @@ server.get('/admin', function(req, res) {
         });
 
     } else {
-        db.query("SELECT collections.*,MAX(cromosTienda.cromoCantidad) as estado FROM collections INNER JOIN cromosTienda ON collections.collectionID = cromosTienda.collectionID group by collections.collectionName ORDER BY collections.collectionID DESC",
+        db.query("SELECT collections.*,MAX(cromosTienda.cromoCantidad) as estado FROM collections INNER JOIN cromosTienda ON collections.collectionID = cromosTienda.collectionID GROUP BY collections.collectionName ORDER BY collections.collectionID DESC",
         
         function(err, result) {
             if(err) {
@@ -261,6 +264,7 @@ server.get('/admin', function(req, res) {
                 });
     
             } else {
+
                 res.render('admin.ejs', {
                     name: req.session.name,
                     rol: req.session.rol,
@@ -317,9 +321,11 @@ server.get('/admin/coleccion/ver/:id', function(req, res) {
         });
 
     } else {
-        db.query("SELECT * FROM cromosTienda where collectionID=?", [req.params.id], function(err, result) {
+        db.query("SELECT cromosTienda.*,collections.collectionName FROM cromosTienda INNER JOIN collections ON cromosTienda.collectionID = collections.collectionID WHERE cromosTienda.collectionID = ?", [req.params.id],
+        
+        function(err, result) {
             
-            if(err) {
+            if(err || result.length == 0) {
                 console.log(err);
 
                 res.render('error.ejs', {
@@ -327,15 +333,14 @@ server.get('/admin/coleccion/ver/:id', function(req, res) {
                     message: "¡Ha ocurrido un error!",
                     rol: req.session.rol
                 });
-    
-            } else {
 
-                console.log(result);
+            } else {
 
                 res.render('adminVerColeccion', {
                     name: req.session.name,
                     rol: req.session.rol,
-                    nombreColeccion: "prueba",
+                    nombreColeccion: result[0].collectionName,
+                    idColeccion: req.params.id,
                     numeroCromos: result.length,
                     cromos: result
                 });
@@ -346,35 +351,94 @@ server.get('/admin/coleccion/ver/:id', function(req, res) {
 
 server.post('/admin/coleccion/add', function(req, res) {
 
-    db.query("INSERT INTO collections SET ?", {collectionName:req.body.coleName}, function(err, result) {
+    if(req.session.iniciado === undefined) {
 
-        if(err) {
-            console.log(err);
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
 
-            res.render('error.ejs', {
-                name: req.session.name,
-                message: "¡Ha ocurrido un error!",
-                rol: req.session.rol
-            });
+    } else if(req.session.rol != def.ROL_ADMIN) {
 
-        } else {
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡No puedes acceder aquí!",
+            rol: req.session.rol
+        });
 
-            var collectionID = result.insertId;
+    } else {
+        db.query("INSERT INTO collections SET ?", {collectionName:req.body.coleName}, function(err, result) {
 
-            for(let i = 0; i < req.body.cromos.length; i++) {
-                db.query("INSERT INTO cromosTienda SET ?", {
-                    collectionID:collectionID,
-                    cromoNombre: req.body.cromos[i].name,
-                    cromoImagen: req.body.cromos[i].imagen,
-                    cromoPrecio: req.body.cromos[i].precio,
-                    cromoCantidad: req.body.cromos[i].cantidad
+            if(err) {
+                console.log(err);
+
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
                 });
-            } 
 
-            res.status(200);
-            res.send("");
-        }
-    });
+            } else {
+
+                var collectionID = result.insertId;
+
+                for(let i = 0; i < req.body.cromos.length; i++) {
+                    db.query("INSERT INTO cromosTienda SET ?", {
+                        collectionID:collectionID,
+                        cromoNombre: req.body.cromos[i].name,
+                        cromoImagen: req.body.cromos[i].imagen,
+                        cromoPrecio: req.body.cromos[i].precio,
+                        cromoCantidad: req.body.cromos[i].cantidad
+                    });
+                } 
+
+                res.status(200);
+                res.send("");
+            }
+        });
+    }
+});
+
+server.post('/admin/cromo/add', function(req, res) {
+
+    if(req.session.iniciado === undefined) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else if(req.session.rol != def.ROL_ADMIN) {
+
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡No puedes acceder aquí!",
+            rol: req.session.rol
+        });
+
+    } else {
+
+        db.query("UPDATE cromosTienda SET cromoCantidad=cromoCantidad+? WHERE cromoNombre=? AND collectionID=?",
+        [req.body.cromoCantidad, req.body.cromoNombre, req.body.collectionID],
+        function(err, result) {
+
+            if(err) {
+                console.log(err);
+    
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
+                });
+    
+            } else {
+                res.status(200);
+                res.send("");
+            }
+        });
+    }
 });
 
 server.post('/addpoints', function(req, res) {
