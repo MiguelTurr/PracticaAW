@@ -30,8 +30,7 @@
                         <tr>
                             <% for(var i=0; i < numeroCromos; i++) {%>
                                 <td>
-                                    <!--<img src="<%= cromos[i].cromoImagen %>" class="img-fluid">-->
-                                    <h3>Imagen</h3>
+                                    <img src="../../../img/<%= cromos[i].cromoImagen %>" class="img-fluid">
                                     <br>
                                     <%= cromos[i].cromoNombre %> [ <span id="<%= cromos[i].cromoNombre %>"><%= cromos[i].cromoCantidad %></span> ]
                                 </td>

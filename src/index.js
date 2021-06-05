@@ -5,6 +5,8 @@ const bcryptjs = require('bcryptjs');
 const fs = require('fs');
 const https = require('https');
 const def = require('./utils/utils.js');
+const session = require('express-session');
+const fileUpload = require('express-fileupload');
 
 const port = 5000;
 
@@ -12,15 +14,14 @@ const port = 5000;
 
 // CONFIGURACIÓN
 
-server.use(express.urlencoded({ extended: false }));
-server.use(express.json()); // PARA QUE ENTIENDA ARCHIVOS JSON
+server.use(express.urlencoded({ extended: true, limit: '50mb' }));
+server.use(express.json({limit: '50mb'})); // PARA QUE ENTIENDA ARCHIVOS JSON
 server.use(express.static('public'));
 server.set('view engine', 'ejs');
 server.set('views', path.join(__dirname, 'views'));
 
 // VARIABLES DE SESIÓN
 
-const session = require('express-session');
 server.use(session({
 	secret: 'secret',
 	resave: true,
@@ -30,6 +31,8 @@ server.use(session({
       maxAge: 30 * 60 * 1000 // CERRAR LA SESIÓN DESPUÉS DE 30 MINUTOS DE INACTIVIDAD
     }
 }));
+server.use(fileUpload());
+
 
 // BASE DE DATOS
 
@@ -38,9 +41,30 @@ const db = require('./database.js');
 // RUTAS
 
 server.get('/', function(req, res) {
-    res.render('quiosco.ejs', {
-        name:req.session.name,
-        rol: req.session.rol
+
+
+    db.query("SELECT * FROM cromosTienda ORDER BY ID DESC LIMIT 3",
+        
+    function(err, result) {
+        
+        if(err || result.length == 0) {
+            console.log(err);
+
+            res.render('error.ejs', {
+                name: req.session.name,
+                message: "¡Ha ocurrido un error!",
+                rol: req.session.rol
+            });
+
+        } else {
+
+            res.render('quiosco.ejs', {
+                name:req.session.name,
+                rol: req.session.rol,
+                cromosTotal: result.length,
+                cromos: result
+            });
+        }
     });
 });
 
@@ -447,6 +471,7 @@ server.post('/admin/coleccion/add', function(req, res) {
         });
 
     } else {
+
         db.query("INSERT INTO collections SET ?", {collectionName:req.body.coleName}, function(err, result) {
 
             if(err) {
@@ -462,15 +487,26 @@ server.post('/admin/coleccion/add', function(req, res) {
 
                 var collectionID = result.insertId;
 
-                for(let i = 0; i < req.body.cromos.length; i++) {
-                    db.query("INSERT INTO cromosTienda SET ?", {
-                        collectionID:collectionID,
-                        cromoNombre: req.body.cromos[i].name,
-                        cromoImagen: req.body.cromos[i].imagen,
-                        cromoPrecio: req.body.cromos[i].precio,
-                        cromoCantidad: req.body.cromos[i].cantidad
-                    });
-                } 
+                if(req.body.total == 1) {
+
+                } else {
+                    var cromos = JSON.parse(req.body.cromos);
+
+                    for(let i = 0; i < req.body.total; i++) {
+                        db.query("INSERT INTO cromosTienda SET ?", {
+                            collectionID:collectionID,
+                            cromoNombre: cromos[i].name,
+                            cromoImagen: req.files.imagen[i].name,
+                            cromoPrecio: cromos[i].precio,
+                            cromoCantidad: cromos[i].cantidad
+                        });
+                    } 
+
+                    for(let i = 0; i < req.body.total; i++) {
+                        let file = req.files.imagen[i];
+                        file.mv(`./public/img/${file.name}`);
+                    }
+                }
 
                 res.status(200);
                 res.send("");
@@ -541,6 +577,20 @@ server.post('/addpoints', function(req, res) {
             }
         });
     }
+});
+
+server.post('/prueba', function(req, res) {
+
+    console.log(req.files.photo);
+    console.log(req.files.photo2);
+    let EDFile = req.files.photo;
+
+    EDFile.mv(`./public/img/${EDFile.name}`, err => {
+
+        if(err) return res.status(500).send({ message : err });
+
+        return res.status(200).send({ message : 'File upload' });
+    });
 });
 
 //

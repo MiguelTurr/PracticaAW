@@ -74,7 +74,7 @@
                     <input class="form-control" id="cantidadCromo" type="number" placeholder="Cantidad">
                   </div>
                   <div class="form-group">
-                    <input class="form-control" id="imagenCromo" type="text" placeholder="Imagen">
+                    <input class="form-control" id="imagenCromo" type="file">
                   </div>
                   <div class="form-group">
                     <button class="btn btn-success btn-block" onclick="addCromo();">
@@ -90,6 +90,7 @@
     <script>
         var cromos = [];
         var contador = 0;
+        var formData = new FormData();
       
         function addCromo() {
             var nombre = document.getElementById('nombreCromo').value;
@@ -115,9 +116,9 @@
                 return  alert("Esa cantidad no es válida");
             }
               
-            var imagen = document.getElementById('imagenCromo').value;
-            if(imagen == "") {
-                return  alert("Debes añadir una imagen al cromo");
+            var imagen = document.getElementById('imagenCromo').files[0];
+            if(imagen == undefined) {
+                return alert("Debes añadir una imagen al cromo");
             }
               
             if(len == 0) {
@@ -141,9 +142,12 @@
                     </td>
                 </tr>`;
               
-            contador++;
-            var cromo = {"name":nombre, "precio":precio, "cantidad":cantidad, "imagen":imagen};	
+            var cromo = {"name":nombre, "precio":precio, "cantidad":cantidad};	
             cromos.push(cromo);			
+
+            formData.append("imagen", imagen);
+
+            contador++;
         }
           
         async function crearColeccion() {
@@ -156,15 +160,14 @@
                 return alert("Debes añadir algún cromo a la colección");
             }
 
-            var object = {
-                coleName: nombre,
-                cromos: cromos
-            };
+
+            formData.append("coleName", nombre);
+            formData.append("total", contador);
+            formData.append("cromos", JSON.stringify(cromos));
 
             await fetch('https://localhost:5000/admin/coleccion/add', {
                 method: 'POST',
-                body: JSON.stringify(object),
-                headers: { 'Content-Type': 'application/json' },
+                body: formData
 
             }).then(function(response) {
 
