@@ -3,6 +3,6 @@ USUARIOS:
     user: juan      |       password: 12345
     user: luisa     |       password: hola
     
-ADMINISTRADORES:
+ADMINISTRADOR:
 
     user: pepe      |       password: abcd
