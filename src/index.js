@@ -50,6 +50,7 @@ server.get('/', function(req, res) {
         if(err || result.length == 0) {
             console.log(err);
 
+            res.status(500);
             res.render('error.ejs', {
                 name: req.session.name,
                 message: "¡Ha ocurrido un error!",
@@ -58,6 +59,7 @@ server.get('/', function(req, res) {
 
         } else {
 
+            res.status(200);
             res.render('quiosco.ejs', {
                 name:req.session.name,
                 rol: req.session.rol,
@@ -72,18 +74,24 @@ server.post('/registro', async function(req, res) {
 
     const user = req.body.user;
     const pass = req.body.pass;
+    const rol = (req.body.rol == "Usuario") ? (def.ROL_USER) : (def.ROL_ADMIN);
 
     let passHash = await bcryptjs.hash(pass, 5);
 
-    db.query("INSERT INTO users SET ?", {username:user, password:passHash}, function(err) {
+    db.query("INSERT INTO users SET ?", {username:user, password:passHash, rol:rol}, function(err) {
         if(err) {
             console.log(err);
+
+            res.status(500);
             res.render('inicio.ejs', {message:"¡Ese nombre de usuario ya está en uso!"});
 
         } else {
+            
             req.session.iniciado = true;
             req.session.name = user;
-            req.session.rol = def.ROL_USER;
+            req.session.rol = rol;
+
+            res.status(200);
             res.redirect('/');
         }
     });
@@ -97,10 +105,14 @@ server.post('/login', async function(req, res) {
     db.query("SELECT * FROM users WHERE username=?", [user], async function(err, result) {
         if(err) {
             console.log(err);
+
+            res.status(500);
             res.render('inicio.ejs', {message:"¡Ha ocurrido un error!"});
 
         } else if(result.length == 0 || !(await bcryptjs.compare(pass, result[0].password))) {
-            res.render('inicio.ejs', {message:"¡Ese nombre o contraseña no coindicen"});
+
+            res.status(500);
+            res.render('inicio.ejs', {message:"¡Ese nombre o contraseña no coindicen!"});
 
         } else {
             req.session.iniciado = true;
@@ -108,6 +120,8 @@ server.post('/login', async function(req, res) {
             req.session.rol = result[0].rol;
             req.session.puntos = result[0].points;
             req.session.userID = result[0].ID;
+
+            res.status(200);
             res.redirect('/');
         }
     });
@@ -116,14 +130,18 @@ server.post('/login', async function(req, res) {
 server.get('/inicio', function(req, res) {
 
     if(req.session.iniciado === undefined) {
+        res.status(200);
         res.render('inicio.ejs', {message:""});
 
     } else {
+        res.status(200);
         res.redirect('/');
     }
 });
 
 server.get('/juegos', function(req, res) {
+
+    res.status(200);
     res.render('juegos.ejs', {
         name:req.session.name,
         rol: req.session.rol
@@ -133,6 +151,8 @@ server.get('/juegos', function(req, res) {
 server.get('/juegos/ahorcado', function(req, res) {
 
     if(req.session.iniciado === undefined) {
+
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡Debes iniciar sesión primero!",
@@ -140,6 +160,8 @@ server.get('/juegos/ahorcado', function(req, res) {
         });
 
     } else {
+
+        res.status(200);
         res.render('ahorcado.ejs', {
             name:req.session.name,
             rol: req.session.rol
@@ -150,6 +172,8 @@ server.get('/juegos/ahorcado', function(req, res) {
 server.get('/juegos/tiktaktoe', function(req, res) {
 
     if(req.session.iniciado === undefined) {
+
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡Debes iniciar sesión primero!",
@@ -157,6 +181,8 @@ server.get('/juegos/tiktaktoe', function(req, res) {
         });
 
     } else {
+
+        res.status(200);
         res.render('tiktaktoe.ejs', {
             name:req.session.name,
             rol: req.session.rol
@@ -168,6 +194,7 @@ server.get('/tienda', function(req, res) {
 
     if(req.session.iniciado === undefined) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡Debes iniciar sesión primero!",
@@ -175,6 +202,8 @@ server.get('/tienda', function(req, res) {
         });
 
     } else {
+
+        res.status(200);
         res.render('tienda.ejs', {
             name: req.session.name,
             rol: req.session.rol
@@ -186,6 +215,7 @@ server.get('/perfil', function(req, res) {
 
     if(req.session.iniciado === undefined) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡Debes iniciar sesión primero!",
@@ -200,6 +230,7 @@ server.get('/perfil', function(req, res) {
             if(err) {
                 console.log(err);
 
+                res.status(500);
                 res.render('error.ejs', {
                     name: req.session.name,
                     message: "¡Ha ocurrido un error!",
@@ -208,6 +239,7 @@ server.get('/perfil', function(req, res) {
     
             } else {
 
+                res.status(200);
                 res.render('perfil.ejs', {
                     name:req.session.name,
                     rol: req.session.rol,
@@ -223,6 +255,7 @@ server.get('/coleccion', function(req, res) {
 
     if(req.session.iniciado === undefined) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡Debes iniciar sesión primero!",
@@ -237,6 +270,7 @@ server.get('/coleccion', function(req, res) {
             if(err) {
                 console.log(err);
 
+                res.status(500);
                 res.render('error.ejs', {
                     name: req.session.name,
                     message: "¡Ha ocurrido un error!",
@@ -245,6 +279,7 @@ server.get('/coleccion', function(req, res) {
     
             } else {
 
+                res.status(200);
                 res.render('coleccion.ejs', {
                     name: req.session.name,
                     rol: req.session.rol,
@@ -260,6 +295,7 @@ server.get('/coleccion/ver/:id', function(req, res) {
 
     if(req.session.iniciado === undefined) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡Debes iniciar sesión primero!",
@@ -268,6 +304,7 @@ server.get('/coleccion/ver/:id', function(req, res) {
 
     } else if(req.session.rol != def.ROL_ADMIN) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡No puedes acceder aquí!",
@@ -282,6 +319,7 @@ server.get('/coleccion/ver/:id', function(req, res) {
             if(err) {
                 console.log(err);
 
+                res.status(500);
                 res.render('error.ejs', {
                     name: req.session.name,
                     message: "¡Ha ocurrido un error!",
@@ -299,6 +337,7 @@ server.get('/coleccion/ver/:id', function(req, res) {
                         if(err) {
                             console.log(err);
 
+                            res.status(500);
                             res.render('error.ejs', {
                                 name: req.session.name,
                                 message: "¡Ha ocurrido un error!",
@@ -307,6 +346,7 @@ server.get('/coleccion/ver/:id', function(req, res) {
 
                         } else {
 
+                            res.status(200);
                             res.render('coleccionVer', {
                                 name: req.session.name,
                                 rol: req.session.rol,
@@ -320,6 +360,7 @@ server.get('/coleccion/ver/:id', function(req, res) {
 
                 } else {
 
+                    res.status(200);
                     res.render('coleccionVer', {
                         name: req.session.name,
                         rol: req.session.rol,
@@ -339,6 +380,7 @@ server.get('/admin', function(req, res) {
 
     if(req.session.iniciado === undefined) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡Debes iniciar sesión primero!",
@@ -347,6 +389,7 @@ server.get('/admin', function(req, res) {
 
     } else if(req.session.rol != def.ROL_ADMIN) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡No puedes acceder aquí!",
@@ -360,6 +403,7 @@ server.get('/admin', function(req, res) {
             if(err) {
                 console.log(err);
 
+                res.status(500);
                 res.render('error.ejs', {
                     name: req.session.name,
                     message: "¡Ha ocurrido un error!",
@@ -368,6 +412,7 @@ server.get('/admin', function(req, res) {
     
             } else {
 
+                res.status(200);
                 res.render('admin.ejs', {
                     name: req.session.name,
                     rol: req.session.rol,
@@ -383,6 +428,7 @@ server.get('/admin/coleccion', function(req, res) {
 
     if(req.session.iniciado === undefined) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡Debes iniciar sesión primero!",
@@ -391,6 +437,7 @@ server.get('/admin/coleccion', function(req, res) {
 
     } else if(req.session.rol != def.ROL_ADMIN) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡No puedes acceder aquí!",
@@ -398,6 +445,8 @@ server.get('/admin/coleccion', function(req, res) {
         });
 
     } else {
+
+        res.status(200);
         res.render('addColeccion.ejs', {
             name: req.session.name,
             rol: req.session.rol
@@ -409,6 +458,7 @@ server.get('/admin/coleccion/ver/:id', function(req, res) {
 
     if(req.session.iniciado === undefined) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡Debes iniciar sesión primero!",
@@ -417,6 +467,7 @@ server.get('/admin/coleccion/ver/:id', function(req, res) {
 
     } else if(req.session.rol != def.ROL_ADMIN) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡No puedes acceder aquí!",
@@ -431,6 +482,7 @@ server.get('/admin/coleccion/ver/:id', function(req, res) {
             if(err || result.length == 0) {
                 console.log(err);
 
+                res.status(500);
                 res.render('error.ejs', {
                     name: req.session.name,
                     message: "¡Ha ocurrido un error!",
@@ -439,6 +491,7 @@ server.get('/admin/coleccion/ver/:id', function(req, res) {
 
             } else {
 
+                res.status(200);
                 res.render('adminVerColeccion', {
                     name: req.session.name,
                     rol: req.session.rol,
@@ -456,6 +509,7 @@ server.post('/admin/coleccion/add', function(req, res) {
 
     if(req.session.iniciado === undefined) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡Debes iniciar sesión primero!",
@@ -464,6 +518,7 @@ server.post('/admin/coleccion/add', function(req, res) {
 
     } else if(req.session.rol != def.ROL_ADMIN) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡No puedes acceder aquí!",
@@ -477,6 +532,7 @@ server.post('/admin/coleccion/add', function(req, res) {
             if(err) {
                 console.log(err);
 
+                res.status(500);
                 res.render('error.ejs', {
                     name: req.session.name,
                     message: "¡Ha ocurrido un error!",
@@ -519,6 +575,7 @@ server.post('/admin/cromo/add', function(req, res) {
 
     if(req.session.iniciado === undefined) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡Debes iniciar sesión primero!",
@@ -527,6 +584,7 @@ server.post('/admin/cromo/add', function(req, res) {
 
     } else if(req.session.rol != def.ROL_ADMIN) {
 
+        res.status(401);
         res.render('error.ejs', {
             name: req.session.name,
             message: "¡No puedes acceder aquí!",
@@ -542,6 +600,7 @@ server.post('/admin/cromo/add', function(req, res) {
             if(err) {
                 console.log(err);
     
+                res.status(500);
                 res.render('error.ejs', {
                     name: req.session.name,
                     message: "¡Ha ocurrido un error!",
@@ -569,6 +628,8 @@ server.post('/addpoints', function(req, res) {
             
             if(err) {
                 console.log(err);
+
+                res.status(500);
                 res.redirect('/');
     
             } else {
