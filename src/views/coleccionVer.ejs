@@ -36,25 +36,25 @@
 
                     <% } else { %>
 
-                        <table class="table table-dark">
-
-                        <tbody class="text-center">
-                            <tr>
+                        <div class="container p-4 bg-dark">
+                            <div class="row">
                                 <% for(var i=0; i < numeroCromos; i++) {%>
-                                    <td>
-                                        <img src="../../../img/<%= cromos[i].cromoImagen %>" class="img-fluid">
-                                        <br>
-                                        <%= cromos[i].cromoNombre %>
-                                    </td>
-        
-                                    <% if(i != 0 && (i+1)%4 == 0) {%>
-                                        </tr>
-                                        <tr>
-                                    <% }%>
+
+                                    <div class="col-md-4 p-3">
+                                        <div class="card text-center bg-secondary">
+
+                                            <div class="card-header">
+                                                <img src="../../../img/<%= cromos[i].cromoImagen %>" class="img-fluid">
+                                            </div>
+
+                                            <div class="card-body">
+                                                Cromo <strong><%= cromos[i].cromoNombre %></strong>
+                                            </div>
+                                        </div>
+                                    </div>
                                 <% } %>
-                            </tr>
-                        </tbody>
-                        </table>
+                            </div>
+                        </div>
                     <% } %>
                 </div>
 

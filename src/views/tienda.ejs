@@ -52,7 +52,7 @@
                                     </button>
 
                                 <% } else { %>
-                                    <button class="btn btn-block btn-danger" type="button">
+                                    <button class="btn btn-block btn-danger" type="button" onclick="coleccionAgotada();">
                                         Agotada
                                     </button>
                                 <% }%>
@@ -70,6 +70,10 @@
     <script>
         function verColeccion(id) {
             window.location.href = '/tienda/coleccion/'+id;
+        }
+
+        function coleccionAgotada() {
+            alert("Esta colección no está disponible por el momento")
         }
 
     </script>
