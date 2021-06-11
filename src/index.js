@@ -834,6 +834,68 @@ server.post('/admin/coleccion/add', function(req, res) {
     }
 });
 
+server.post('/admin/coleccion/estado', function(req, res) {
+
+    if(req.session.iniciado === undefined) {
+
+        res.status(401);
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else if(req.session.rol != def.ROL_ADMIN) {
+
+        res.status(401);
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡No puedes acceder aquí!",
+            rol: req.session.rol
+        });
+
+    } else {
+
+        db.query("SELECT collectionEstado FROM collections WHERE collectionID=?", [req.body.collectionID],
+        function(err, result) {
+
+            if(err) {
+                console.log(err);
+    
+                res.status(500);
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
+                });
+    
+            } else {
+
+                let estado = (result[0].collectionEstado == 1) ? (0) : (1);
+
+                db.query("UPDATE collections SET collectionEstado=? WHERE collectionID=?", [estado, req.body.collectionID],
+                
+                function(err) {
+                    if(err) {
+                        console.log(err);
+            
+                        res.status(500);
+                        res.render('error.ejs', {
+                            name: req.session.name,
+                            message: "¡Ha ocurrido un error!",
+                            rol: req.session.rol
+                        });
+                    } else {
+
+                        res.status(200);
+                        res.send((estado == 1) ? ("Activa") : ("Agotada"));
+                    }
+                });
+            }
+        });
+    }
+});
+
 server.post('/admin/cromo/add', function(req, res) {
 
     if(req.session.iniciado === undefined) {
