@@ -81,7 +81,7 @@
                     Inicia sesión aquí
                   </button>
                 </div> 
-                <div class="form-group text-danger">
+                <div class="form-group text-danger" id="mensaje">
                   <%= message %>
                 </div> 
               </div>
@@ -95,11 +95,15 @@
         function ocultarLogin() {
             document.getElementById("login").style.display = "none";
             document.getElementById("registro").style.display = "block";
+
+            document.getElementById("mensaje").innerHTML = "";
         }
 
         function ocultarRegistro() {
             document.getElementById("registro").style.display = "none";
             document.getElementById("login").style.display = "block";
+
+            document.getElementById("mensaje").innerHTML = "";
         }
     </script>
 </body>

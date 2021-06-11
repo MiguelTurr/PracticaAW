@@ -1,7 +1,7 @@
 USUARIOS:
     
-    user: pepe      |       password: abcd
-    user: pepe      |       password: abcd
+    user: juan      |       password: 12345
+    user: luisa     |       password: hola
     
 ADMINISTRADORES:
 

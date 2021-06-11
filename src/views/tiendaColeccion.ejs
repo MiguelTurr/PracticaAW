@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../css/main.css">
+    
+    <%- include ("partials/header") %>
+</head>
+<body>
+    <%- include ("partials/navegacion") %>
+
+    <div class="container p-4">
+        <div class="row">
+            <div class="col-md-10 mx-auto">
+
+                <div class="card text-center">
+
+                    <div class="card-header bg-dark text-white text-center">
+                        Tu saldo es de <strong class="text-success"><span id="saldoUser"><%= saldo %></span> puntos</strong>
+                    </div>
+                    <div class="card-body">
+
+                        <strong id="mensaje"></strong>
+                        
+                        <div class="container p-4">
+                            <div class="row">
+
+                                <div class="col-md-4 p-3">
+                                    <div class="card text-center bg-secondary">
+
+                                        <div class="card-header">
+                                            <img src="../../../img/album.jpg" class="img-fluid">
+                                        </div>
+                                        <div class="card-body">
+                                            Álbum <strong><%= coleccion[0].collectionName %></strong>
+                                            <br>
+                                            Coste: <strong class="text-danger" id="costeAlbum"><%= coleccion[0].collectionCoste %></strong> puntos
+                                        </div>
+
+                                        <div class="card-body">
+                                            <button type="button" class="btn btn-success btn-block" onclick="comprarAlbum('<%=coleccion[0].collectionID%>');">Comprar</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <% for(var i=0; i < cromos.length; i++) {%>
+
+                                    <div class="col-md-4 p-3">
+                                        <div class="card text-center bg-secondary">
+
+                                            <div class="card-header">
+                                                <img src="../../../img/<%= cromos[i].cromoImagen %>" class="img-fluid">
+                                            </div>
+
+                                            <% if(cromos[i].cromoCantidad == 0) {%>
+                                                <div class="card-body">
+                                                    Cromo <strong><%= cromos[i].cromoNombre %></strong>
+                                                    <br>
+                                                    <strong class="text-danger">Agotado</strong>
+                                                </div>
+                                            <% } else {%>
+                                                <div class="card-body">
+                                                    Cromo <strong><%= cromos[i].cromoNombre %></strong>
+                                                    <br>
+                                                    Coste: <strong class="text-danger" id="cromo<%=cromos[i].ID%>"><%= cromos[i].cromoPrecio %></strong> puntos
+                                                </div>
+    
+                                                <div class="card-body">
+                                                    <button type="button" class="btn btn-success btn-block" onclick="comprarCromo('<%=cromos[i].ID%>');">Comprar</button>
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        async function comprarAlbum(id) {
+
+            await fetch('https://localhost:5000/tienda/comprar/coleccion/'+id, {
+                method: 'GET'
+
+            }).then(function(response) {
+
+                if(response.ok) {
+                    let coste = parseInt(document.getElementById("costeAlbum").textContent);
+                    let saldo = parseInt(document.getElementById("saldoUser").textContent);
+                    let final = saldo - coste;
+
+                    document.getElementById("saldoUser").innerHTML = `${final}`;
+                    return response.text();
+
+                } else if(response.status == 500) {
+                    return response.text();
+
+                } else {
+                    throw "Error en la llamada Ajax";
+                }
+
+            }).then(function(texto) {
+                document.getElementById("mensaje").innerHTML = `${texto}`;
+
+            }).catch(function(err) {
+                console.log(err);
+            });
+        }
+
+        async function comprarCromo(id) {
+
+            await fetch('https://localhost:5000/tienda/comprar/cromo/'+id, {
+                method: 'GET'
+
+            }).then(function(response) {
+
+                if(response.ok) {
+                    let coste = parseInt(document.getElementById("cromo"+id).textContent);
+                    let saldo = parseInt(document.getElementById("saldoUser").textContent);
+                    let final = saldo - coste;
+
+                    document.getElementById("saldoUser").innerHTML = `${final}`;
+                    return response.text();
+
+                } else if(response.status == 500) {
+                    return response.text();
+
+                } else {
+                    throw "Error en la llamada Ajax";
+                }
+
+            }).then(function(texto) {
+                document.getElementById("mensaje").innerHTML = `${texto}`;
+
+            }).catch(function(err) {
+                console.log(err);
+            });
+        }
+    </script>
+
+</body>
+<%- include ("partials/footer") %>
+</html>

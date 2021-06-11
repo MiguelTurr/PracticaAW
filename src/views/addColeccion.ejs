@@ -24,6 +24,9 @@
                   <div class="form-group">
                     <input class="form-control" id="nombreColeccion" type="text" placeholder="Nombre">
                   </div> 
+                  <div class="form-group">
+                    <input class="form-control" id="costeColeccion" type="number" placeholder="Precio">
+                  </div> 
               </div>
                 <div class="form-group bg-dark text-white text-center">
                   <h3>Cromos</h3>
@@ -87,6 +90,7 @@
         var formData = new FormData();
       
         function addCromo() {
+
             var nombre = document.getElementById('nombreCromo').value;
             if(nombre == "") {
                 return alert("Debes escribir un nombre al cromo");
@@ -102,7 +106,7 @@
               
             var precio = parseInt(document.getElementById('precioCromo').value);
             if(isNaN(precio) == true || precio <= 0) {
-                return  alert("Ese precio no es válido");
+                return alert("¡El precio del cromo no es válido!");
             }
               
             var cantidad = parseInt(document.getElementById('cantidadCromo').value);
@@ -149,6 +153,11 @@
             if(nombre == "") {
                 return alert("Debes escribir un nombre para la colección");
             }
+
+            var coste = parseInt(document.getElementById('costeColeccion').value);
+            if(isNaN(coste) == true || coste <= 0) {
+                return alert("¡El precio de la colección no es válido!");
+            }
               
             if(cromos.length == 0) {
                 return alert("Debes añadir algún cromo a la colección");
@@ -156,6 +165,7 @@
 
 
             formData.append("coleName", nombre);
+            formData.append("coleCoste", coste);
             formData.append("total", contador);
             formData.append("cromos", JSON.stringify(cromos));
 

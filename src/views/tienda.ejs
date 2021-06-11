@@ -13,7 +13,64 @@
 <body>
     <%- include ("partials/navegacion") %>
 
+    <% if(colecciones.length == 0) { %>
+        <div class="container p-4">
+            <br>
+            <br>
+            <br>
+            <div class="row">
+                <div class="col-md-6 mx-auto">
+                    <div class="card text-center">
+                        <div class="card-header bg-danger text-white text-center">
+                            <h3>No hay ninguna colección disponible</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <% } else { %>
+
+        <div class="container p-5">
+            <div class="row">
+
+                <% for(var i=0; i < colecciones.length; i++) {%>
+                    <div class="col-md-4 mx-auto p-3">
+                        <div class="card text-center">
+                            <div class="card-header bg-dark text-white text-center">
+                                <% if(fechas[i].fecha < 5) { %>
+                                    <h3 class="text-success">Colección nueva</h3>
+                                <% } %>
+
+                                <%= colecciones[i].collectionName %> - <%= colecciones[i].collectionCromos %> cromos
+                            </div>
+                            <div class="card-body">
+
+                                <% if(colecciones[i].collectionEstado != 0) { %>
+                                    <button class="btn btn-block btn-success" type="button" onclick="verColeccion('<%=colecciones[i].collectionID%>');">
+                                        Mostrar
+                                    </button>
+
+                                <% } else { %>
+                                    <button class="btn btn-block btn-danger" type="button">
+                                        Agotada
+                                    </button>
+                                <% }%>
+                            </div>
+                        </div>
+                    </div>
+
+                <% } %>
+
+            </div>
+        </div>
+
+    <% } %>
+
     <script>
+        function verColeccion(id) {
+            window.location.href = '/tienda/coleccion/'+id;
+        }
 
     </script>
 </body>

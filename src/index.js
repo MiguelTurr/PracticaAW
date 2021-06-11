@@ -47,7 +47,7 @@ server.get('/', function(req, res) {
         
     function(err, result) {
         
-        if(err || result.length == 0) {
+        if(err) {
             console.log(err);
 
             res.status(500);
@@ -78,7 +78,7 @@ server.post('/registro', async function(req, res) {
 
     let passHash = await bcryptjs.hash(pass, 5);
 
-    db.query("INSERT INTO users SET ?", {username:user, password:passHash, rol:rol}, function(err) {
+    db.query("INSERT INTO users SET ?", {username:user, password:passHash, rol:rol}, function(err, result) {
         if(err) {
             console.log(err);
 
@@ -90,6 +90,8 @@ server.post('/registro', async function(req, res) {
             req.session.iniciado = true;
             req.session.name = user;
             req.session.rol = rol;
+            req.session.puntos = 0;
+            req.session.userID = result.insertId;
 
             res.status(200);
             res.redirect('/');
@@ -203,10 +205,251 @@ server.get('/tienda', function(req, res) {
 
     } else {
 
-        res.status(200);
-        res.render('tienda.ejs', {
+        db.query("SELECT * FROM collections ORDER BY collectionCreacion", function(err, result) {
+            if(err) {
+                console.log(err);
+
+                res.status(500);
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
+                });
+    
+            } else {
+
+                var coleccionNueva = [];
+                for(let i = 0; i < result.length; i++) {
+
+                    let objeto = {
+                        fecha: (new Date() - result[i].collectionCreacion) / 86400000
+                    };
+                    coleccionNueva.push(objeto);
+                }
+
+                res.status(200);
+                res.render('tienda.ejs', {
+                    name: req.session.name,
+                    rol: req.session.rol,
+                    colecciones: result,
+                    fechas: coleccionNueva
+                });
+            }
+        });
+    }
+});
+
+server.get('/tienda/coleccion/:id', function(req, res) {
+
+    if(req.session.iniciado === undefined) {
+
+        res.status(401);
+        res.render('error.ejs', {
             name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
             rol: req.session.rol
+        });
+
+    } else {
+
+        const collectionID = req.params.id;
+        db.query("SELECT * FROM collections WHERE collectionID=? LIMIT 1", [collectionID],
+        
+        function(err, coleccion) {
+
+            if(err) {
+                console.log(err);
+
+                res.status(500);
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
+                });
+
+            } else {
+                db.query("SELECT * FROM cromosTienda WHERE collectionID=?", [collectionID],
+        
+                function(err, cromos) {
+                    if(err) {
+                        console.log(err);
+        
+                        res.status(500);
+                        res.render('error.ejs', {
+                            name: req.session.name,
+                            message: "¡Ha ocurrido un error!",
+                            rol: req.session.rol
+                        });
+
+                    } else {
+
+                        res.status(200);
+                        res.render('tiendaColeccion.ejs', {
+                            name: req.session.name,
+                            rol: req.session.rol,
+                            saldo: req.session.puntos,
+                            coleccion: coleccion,
+                            cromos: cromos
+                        });
+                    }
+                });
+            }
+        });
+    }
+});
+
+server.get('/tienda/comprar/coleccion/:id', function(req, res) {
+
+    if(req.session.iniciado === undefined) {
+
+        res.status(401);
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else {
+
+        const collectionID = req.params.id;
+
+        db.query("SELECT * FROM collections WHERE collectionID=?", [collectionID],
+            
+        function(err, result) {
+
+            if(err) {
+                console.log(err);
+
+                res.status(500);
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
+                });
+
+            } else if(req.session.puntos < result[0].collectionCoste) {
+                console.log(err);
+
+                res.status(500);
+                res.send("<span class='text-danger'>¡No tienes suficientes puntos para comprar el album!</span>");
+
+            } else {
+
+                db.query("INSERT INTO album SET ?",
+                {
+                    collectionID: collectionID,
+                    userID: req.session.userID,
+                    totalCromos: result[0].collectionCromos
+                },
+
+                function(err) {
+
+                    if(err) {
+                        console.log(err);
+
+                        res.status(500);
+                        res.send("<span class='text-danger'>¡Ese álbum ya está en tus colecciones!</span>");
+
+                    } else {
+                        req.session.puntos -= result[0].collectionCoste;
+
+                        db.query("UPDATE users SET points=? WHERE ID=?", [req.session.puntos, req.session.userID]);
+                        res.status(200);
+                        res.send("<span class='text-success'>¡El álbum ha sido añadido a tus colecciones!</span>");
+                    }
+                });
+            }
+        });
+    }
+});
+
+server.get('/tienda/comprar/cromo/:id', function(req, res) {
+
+    if(req.session.iniciado === undefined) {
+
+        res.status(401);
+        res.render('error.ejs', {
+            name: req.session.name,
+            message: "¡Debes iniciar sesión primero!",
+            rol: req.session.rol
+        });
+
+    } else {
+
+        const cromoID = req.params.id;
+
+        db.query("SELECT * FROM cromosTienda WHERE ID=?", [cromoID],
+            
+        function(err, result) {
+
+            if(err) {
+                console.log(err);
+
+                res.status(500);
+                res.render('error.ejs', {
+                    name: req.session.name,
+                    message: "¡Ha ocurrido un error!",
+                    rol: req.session.rol
+                });
+
+            } else if(req.session.puntos < result[0].cromoPrecio) {
+                console.log(err);
+
+                res.status(500);
+                res.send("<span class='text-danger'>¡No tienes suficientes puntos para comprar el cromo!</span>");
+
+            } else {
+
+                db.query("SELECT * FROM album WHERE collectionID=? AND userID=?", [result[0].collectionID, req.session.userID],
+                    
+                function(err, album) {
+
+                    if(err) {
+                        console.log(err);
+
+                        res.status(500);
+                        res.render('error.ejs', {
+                            name: req.session.name,
+                            message: "¡Ha ocurrido un error!",
+                            rol: req.session.rol
+                        });
+
+                    } else if(album.length == 0) {
+                        console.log(err);
+
+                        res.status(500);
+                        res.send("<span class='text-danger'>¡Debes comprar el álbum primero!</span>");
+                    } else {
+
+                        db.query("INSERT INTO cromosUsuario SET ?",
+                        {
+                            collectionID: result[0].collectionID,
+                            userID: req.session.userID,
+                            cromoID: cromoID
+                        },
+        
+                        function(err) {
+        
+                            if(err) {
+                                console.log(err);
+        
+                                res.status(500);
+                                res.send("<span class='text-danger'>¡Ese cromo ya está en tu colección!</span>");
+        
+                            } else {
+                                req.session.puntos -= result[0].cromoPrecio;
+        
+                                db.query("UPDATE users SET points=? WHERE ID=?", [req.session.puntos, req.session.userID]);
+                                db.query("UPDATE album SET cromoComprados=cromoComprados+1 WHERE ID=?", [album[0].ID]);
+                                db.query("UPDATE cromosTienda SET cromoCantidad=cromoCantidad-1 WHERE ID=?", [cromoID]);
+                                             
+                                res.status(200);
+                                res.send("<span class='text-success'>¡El cromo ha sido añadido a tus colecciones!</span>");
+                            }
+                        });
+                    }
+                });
+            }
         });
     }
 });
@@ -397,7 +640,8 @@ server.get('/admin', function(req, res) {
         });
 
     } else {
-        db.query("SELECT collections.*,MAX(cromosTienda.cromoCantidad) as estado FROM collections INNER JOIN cromosTienda ON collections.collectionID = cromosTienda.collectionID GROUP BY collections.collectionName ORDER BY collections.collectionID DESC",
+
+        db.query("SELECT * FROM collections ORDER BY collections.collectionID DESC",
         
         function(err, result) {
             if(err) {
@@ -527,7 +771,14 @@ server.post('/admin/coleccion/add', function(req, res) {
 
     } else {
 
-        db.query("INSERT INTO collections SET ?", {collectionName:req.body.coleName}, function(err, result) {
+        db.query("INSERT INTO collections SET ?",
+        {
+            collectionName: req.body.coleName,
+            collectionCromos: req.body.total,
+            collectionCoste: req.body.coleCoste
+        },
+        
+        function(err, result) {
 
             if(err) {
                 console.log(err);
@@ -544,6 +795,18 @@ server.post('/admin/coleccion/add', function(req, res) {
                 var collectionID = result.insertId;
 
                 if(req.body.total == 1) {
+
+                    var cromos = JSON.parse(req.body.cromos);
+
+                    db.query("INSERT INTO cromosTienda SET ?", {
+                        collectionID:collectionID,
+                        cromoNombre: cromos[0].name,
+                        cromoImagen: req.files.imagen.name,
+                        cromoPrecio: cromos[0].precio,
+                        cromoCantidad: cromos[0].cantidad
+                    });
+
+                    req.files.imagen.mv(`./public/img/${req.files.imagen.name}`);
 
                 } else {
                     var cromos = JSON.parse(req.body.cromos);
@@ -638,20 +901,6 @@ server.post('/addpoints', function(req, res) {
             }
         });
     }
-});
-
-server.post('/prueba', function(req, res) {
-
-    console.log(req.files.photo);
-    console.log(req.files.photo2);
-    let EDFile = req.files.photo;
-
-    EDFile.mv(`./public/img/${EDFile.name}`, err => {
-
-        if(err) return res.status(500).send({ message : err });
-
-        return res.status(200).send({ message : 'File upload' });
-    });
 });
 
 //
