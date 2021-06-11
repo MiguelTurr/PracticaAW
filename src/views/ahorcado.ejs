@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiosco AW</title>
-
-    <!-- BOOSTRAP -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-
     <!-- CSS -->
     <link rel="stylesheet" href="../css/main.css">
+    
+    <%- include ("partials/header") %>
 </head>
 <body>
     <%- include ("partials/navegacion") %>
@@ -52,7 +49,7 @@
         ]
         var random = Math.floor((Math.random() * (letras.length - 1)));
 
-        var palabra = letras[random]; // the word to guess will be chosen from the array above
+        var palabra = letras[random];
         var adivinar = new Array(palabra.length);
         var fallos = 0;
         var intentos = 6;
@@ -121,8 +118,19 @@
                 }
             }
             if (fin) {
-                window.alert("Enhorabuena, has ganado!");
+
+                let puntos = 6 - fallos;
+
+                window.alert(`Enhorabuena, has ganado ${puntos} puntos!`);
                 juegoTerminado = true;
+
+                // AÑADIR PUNTOS
+
+                fetch('https://localhost:5000/addpoints', {
+                    method: 'POST',
+                    body: JSON.stringify({ points: puntos }),
+                    headers: { 'Content-Type': 'application/json' },
+                });
             }
 
             if (fallos === 6) {
