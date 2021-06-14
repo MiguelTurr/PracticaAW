@@ -194,54 +194,42 @@ server.get('/juegos/tiktaktoe', function(req, res) {
 
 server.get('/tienda', function(req, res) {
 
-    if(req.session.iniciado === undefined) {
+    db.query("SELECT * FROM collections ORDER BY collectionCreacion", function (err, result) {
+        if (err) {
+            console.log(err);
 
-        res.status(401);
-        res.render('error.ejs', {
-            name: req.session.name,
-            message: "¡Debes iniciar sesión primero!",
-            rol: req.session.rol
-        });
+            res.status(500);
+            res.render('error.ejs', {
+                name: req.session.name,
+                message: "¡Ha ocurrido un error!",
+                rol: req.session.rol
+            });
 
-    } else {
+        } else {
 
-        db.query("SELECT * FROM collections ORDER BY collectionCreacion", function(err, result) {
-            if(err) {
-                console.log(err);
+            var coleccionNueva = [];
+            for (let i = 0; i < result.length; i++) {
 
-                res.status(500);
-                res.render('error.ejs', {
-                    name: req.session.name,
-                    message: "¡Ha ocurrido un error!",
-                    rol: req.session.rol
-                });
-    
-            } else {
-
-                var coleccionNueva = [];
-                for(let i = 0; i < result.length; i++) {
-
-                    let objeto = {
-                        fecha: (new Date() - result[i].collectionCreacion) / 86400000
-                    };
-                    coleccionNueva.push(objeto);
-                }
-
-                res.status(200);
-                res.render('tienda.ejs', {
-                    name: req.session.name,
-                    rol: req.session.rol,
-                    colecciones: result,
-                    fechas: coleccionNueva
-                });
+                let objeto = {
+                    fecha: (new Date() - result[i].collectionCreacion) / 86400000
+                };
+                coleccionNueva.push(objeto);
             }
-        });
-    }
+
+            res.status(200);
+            res.render('tienda.ejs', {
+                name: req.session.name,
+                rol: req.session.rol,
+                colecciones: result,
+                fechas: coleccionNueva
+            });
+        }
+    });
 });
 
 server.get('/tienda/coleccion/:id', function(req, res) {
 
-    if(req.session.iniciado === undefined) {
+    if (req.session.iniciado === undefined) {
 
         res.status(401);
         res.render('error.ejs', {
@@ -254,47 +242,47 @@ server.get('/tienda/coleccion/:id', function(req, res) {
 
         const collectionID = req.params.id;
         db.query("SELECT * FROM collections WHERE collectionID=? LIMIT 1", [collectionID],
-        
-        function(err, coleccion) {
 
-            if(err) {
-                console.log(err);
+            function (err, coleccion) {
 
-                res.status(500);
-                res.render('error.ejs', {
-                    name: req.session.name,
-                    message: "¡Ha ocurrido un error!",
-                    rol: req.session.rol
-                });
+                if (err) {
+                    console.log(err);
 
-            } else {
-                db.query("SELECT * FROM cromosTienda WHERE collectionID=?", [collectionID],
-        
-                function(err, cromos) {
-                    if(err) {
-                        console.log(err);
-        
-                        res.status(500);
-                        res.render('error.ejs', {
-                            name: req.session.name,
-                            message: "¡Ha ocurrido un error!",
-                            rol: req.session.rol
+                    res.status(500);
+                    res.render('error.ejs', {
+                        name: req.session.name,
+                        message: "¡Ha ocurrido un error!",
+                        rol: req.session.rol
+                    });
+
+                } else {
+                    db.query("SELECT * FROM cromosTienda WHERE collectionID=?", [collectionID],
+
+                        function (err, cromos) {
+                            if (err) {
+                                console.log(err);
+
+                                res.status(500);
+                                res.render('error.ejs', {
+                                    name: req.session.name,
+                                    message: "¡Ha ocurrido un error!",
+                                    rol: req.session.rol
+                                });
+
+                            } else {
+
+                                res.status(200);
+                                res.render('tiendaColeccion.ejs', {
+                                    name: req.session.name,
+                                    rol: req.session.rol,
+                                    saldo: req.session.puntos,
+                                    coleccion: coleccion,
+                                    cromos: cromos
+                                });
+                            }
                         });
-
-                    } else {
-
-                        res.status(200);
-                        res.render('tiendaColeccion.ejs', {
-                            name: req.session.name,
-                            rol: req.session.rol,
-                            saldo: req.session.puntos,
-                            coleccion: coleccion,
-                            cromos: cromos
-                        });
-                    }
-                });
-            }
-        });
+                }
+            });
     }
 });
 

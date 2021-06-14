@@ -1,3 +1,7 @@
+CREATE DATABASE practicaAW;
+USE practicaAW;
+
+
 -- MySQL dump 10.13  Distrib 8.0.25, for Linux (x86_64)
 --
 -- Host: localhost    Database: practicaAW
